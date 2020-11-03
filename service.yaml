@@ -1,1 +1,8 @@
 name: argocd-bot
+slack: pb-argocd-notifications
+owner: sre
+tests:
+  primary:
+  - name: argocd-bot
+    build: .
+    command: tail -f /dev/null

@@ -1,5 +1,5 @@
 import * as sinon from "sinon"
-import * as nock from "nock"
+const nock = require('nock')
 import { Probot } from 'probot'
 
 const ArgocdBot = require("..")
