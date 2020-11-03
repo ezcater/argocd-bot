@@ -1,6 +1,6 @@
 name: argocd-bot
 tests:
   primary:
-  - name: ezcater-config-nodejs
+  - name: argocd-bot
     build: .
     command: tail -f /dev/null
