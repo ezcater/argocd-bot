@@ -31,7 +31,7 @@ const BotHelp = Object.freeze({
     Preview: "[Not yet supported] deploy temporary PR",
     Rollback: "rollback [optional: --dry-run or -d] [app name], use 'rollback --dry-run app' or 'rollback -d app' to see latest deployment info, use 'rollback app' to rollback the latest deployment to the previous one, verify rollback using diff command",
     Sync: "usage: `sync [app name]`, syncs deployment in GKE cluster with manifests or helm charts using branch in current PR",
-    Unlock: "removes lock held by current PR, allows other PR's to run bot"
+    Unlock: "removes lock held by current PR, allows other PR's to run bot",
 });
 
 export class ArgoBot {
@@ -76,10 +76,10 @@ export class ArgoBot {
     private static async getCurrentBranchContext(context, prNumber) {
         // I couldn't find an API call that filters this properly
         let prs = await context.github.pulls.list(
-            { 
+            {
                 owner: context.repo().owner,
-                repo: context.repo().repo
-            }
+                repo: context.repo().repo,
+            },
         );
         prs = prs["data"];
         for (const key in prs) {
