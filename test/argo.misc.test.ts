@@ -1,6 +1,6 @@
 import * as sinon from "sinon"
 const nock = require('nock')
-import { Probot } from "probot"
+const { Probot, ProbotOctokit } = require("probot");
 
 const ArgocdBot = require("..")
 
@@ -20,7 +20,14 @@ describe("argo-cd-bot", () => {
     const argoCDServer = "1.2.3.4"
     
     beforeEach(() => {
-        probot = new Probot({})
+        probot = new Probot({
+            id: 2,
+            githubToken: "test",
+            Octokit: ProbotOctokit.defaults({
+                retry: { enabled: false },
+                throttle: { enabled: false },
+            }),
+        })
         const app = probot.load(ArgocdBot)
         app.app = () => "test"
         sandbox = sinon.createSandbox();
