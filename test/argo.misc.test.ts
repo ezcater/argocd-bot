@@ -6,6 +6,7 @@ const ArgocdBot = require("..")
 
 // test fixtures
 const payloadPr1 = require("./fixtures/issue_comment.created.pr1.json")
+const payloadPr1Opened = require("./fixtures/pull_request.opened.pr1.json")
 const payloadPr1Closed = require("./fixtures/pull_request.closed.pr1.json")
 const payloadPr1UnlockComment = require("./fixtures/issue_comment.created.unlock.pr1.json")
 const payloadPr2 = require("./fixtures/issue_comment.created.pr2.json")
@@ -20,6 +21,7 @@ describe("argo-cd-bot", () => {
     const argoCDServer = "1.2.3.4"
     
     beforeEach(() => {
+        nock.disableNetConnect();
         probot = new Probot({
             id: 2,
             githubToken: "test",
@@ -43,6 +45,36 @@ describe("argo-cd-bot", () => {
     afterEach(() => {
         sandbox.restore()
         nock.cleanAll()
+        nock.enableNetConnect();
+    })
+
+    test("help comment posted on opened PR", async() => {
+        nock("https://api.github.com")
+            .post("/app/installations/2/access_tokens")
+            .reply(200, {token: "test"})
+
+        // test constants
+        const branch = "newBranch"
+        const appDiff = "===== App Diff ===="
+        const appName = "app1"
+        const appDir = "projects/app1"
+        const commentBody = "hello world from argocd bot!"
+
+        nock("https://api.github.com").get("/repos/robotland/test/pulls").reply(200, {"data": {"number": 109, "head": { "ref": branch}}})
+
+        // regex match post body should match diff produced by API
+        nock("https://api.github.com")
+            .post("/repos/robotland/test/issues/1/comments", (body: string) => {
+                expect(body).toMatchObject(commentBody)
+                return true;
+            })
+            .reply(200)
+
+        let helpPayload = JSON.parse(JSON.stringify(payloadPr1Opened))
+        // helpPayload["comment"]["body"] = "argo help"
+        await probot.receive({name: "issue_comment", payload: helpPayload})
+
+        // expect()
     })
 
     test("help comment posted on PR", async() => {

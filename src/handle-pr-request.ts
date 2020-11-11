@@ -1,8 +1,10 @@
 module.exports = {
     handlePrClosed,
     handlePrComment,
+    handlePrOpened,
 };
 
+import type { Context } from "probot";
 import { ArgoBot } from "./argo-bot";
 import { PrLock } from "./singleton-pr-lock";
 
@@ -14,7 +16,7 @@ const DEFAULT_CONFIG = {
   reposDir: "repos"
 }*/
 
-async function handlePrClosed(context, config) {
+async function handlePrClosed(context: Context, config) {
     const prNumber = context.payload.pull_request.number;
 
     context.log("handlePrClosed, pr#" + prNumber);
@@ -24,7 +26,7 @@ async function handlePrClosed(context, config) {
     context.log("handlePrClosed, unlockStatus=" + unlockStatus);
 }
 
-async function handlePrComment(context, config) {
+async function handlePrComment(context: Context, config) {
     // strip away new lines from the comment string if any exist
     let prComment: string = context.payload.comment.body.replace(/(\r\n|\n|\r)/gm, "");
     // replace multiple spaces with a single space
@@ -41,3 +43,12 @@ async function handlePrComment(context, config) {
     const bot = new ArgoBot(context);
     await bot.handleCommand(prComment);
 }
+
+/* tslint:disable */
+
+
+async function handlePrOpened(context: Context, config: any) {
+    console.log(config);
+}
+
+/* tslint:enable */
