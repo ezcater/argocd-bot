@@ -2,14 +2,14 @@ import Handlebars from "handlebars";
 
 import * as argoCommands from "./argoCommands";
 
-const prOpenedSource: string = `Hi, I'm a bot that helps with Kubernetes deployments. Invoke me via \`botCommand\` on PRs.
+const prOpenedSource: string = `Hi, I'm a bot that helps with Kubernetes deployments. Invoke me via \`{{ BotCommand }}\` on PRs.
 
 * :mag: To show a diff for a specific app, comment:
-    * \`{{ BotActions.Diff }} {{ BotDiffActions.App }} <app_name>\`
+    * \`{{ BotCommand }} {{ BotActions.Diff }} {{ BotDiffActions.App }} <app_name>\`
 * :ledger: To show a diff for all apps, comment:
-    * \`{{ BotActions.Diff }} {{ BotDiffActions.App }}\`
+    * \`{{ BotCommand }} {{ BotActions.Diff }}\`
 * :question: To show full help for argo, comment:
-    * \`{{ BotActions.Help }}\`
+    * \`{{ BotCommand }} {{ BotActions.Help }}\`
 
 `;
 
