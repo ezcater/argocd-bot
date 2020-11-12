@@ -1,8 +1,9 @@
 import * as sinon from "sinon"
-const nock = require('nock')
-const { Probot, ProbotOctokit } = require("probot");
+import nock from 'nock';
+import { Probot, ProbotOctokit } from "probot";
 
 const ArgocdBot = require("..")
+import { BotHelpMessage } from "../src/argo-bot";
 
 // test fixtures
 const payloadPr1 = require("./fixtures/issue_comment.created.pr1.json")
@@ -60,21 +61,21 @@ describe("argo-cd-bot", () => {
         const appDir = "projects/app1"
         const commentBody = "hello world from argocd bot!"
 
-        nock("https://api.github.com").get("/repos/robotland/test/pulls").reply(200, {"data": {"number": 109, "head": { "ref": branch}}})
+        nock("https://api.github.com").get("/repos/robotland/test/pulls").reply(200, {"data": {"number": 1, "head": { "ref": branch}}})
 
         // regex match post body should match diff produced by API
-        nock("https://api.github.com")
-            .post("/repos/robotland/test/issues/1/comments", (body: string) => {
-                expect(body).toMatchObject(commentBody)
+        let prCommentResponse = nock("https://api.github.com")
+            .post("/repos/robotland/test/issues/1/comments", (response: { body: string; }) => {
+                expect(response.body).toMatch(BotHelpMessage)
                 return true;
             })
             .reply(200)
 
-        let helpPayload = JSON.parse(JSON.stringify(payloadPr1Opened))
-        // helpPayload["comment"]["body"] = "argo help"
-        await probot.receive({name: "issue_comment", payload: helpPayload})
+        let prOpenedPayload = JSON.parse(JSON.stringify(payloadPr1Opened))
+        await probot.receive({name: "pull_request", payload: prOpenedPayload})
 
-        // expect()
+        // tells nock to evaluate if mocks were called with expected values
+        prCommentResponse.done()
     })
 
     test("help comment posted on PR", async() => {

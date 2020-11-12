@@ -1,8 +1,11 @@
+import type { Context } from "probot";
 import { PrLock } from "./singleton-pr-lock";
 
 import { ArgoAPI } from "./argo-api";
 import { ArgoBotConfig } from "./argo-bot-config";
 import { to } from "./to";
+
+// TOOD: replace all these strings with a templating system like handlebars
 
 // bot command that triggers this bot to wake up
 const BotCommand = "argo";
@@ -34,6 +37,24 @@ const BotHelp = Object.freeze({
     Unlock: "removes lock held by current PR, allows other PR's to run bot",
 });
 
+export let BotHelpMessage = `
+Hi, I'm a bot that helps with Kubernetes deployments. Invoke me via \`${BotCommand}\` on PRs.
+Supported commands are:
+\`\`\`
+${BotActions.Diff}: ${BotHelp.Diff}
+
+${BotActions.Unlock}: ${BotHelp.Unlock}
+
+${BotActions.Sync}: ${BotHelp.Sync}
+
+${BotActions.Info}: ${BotHelp.Info}
+
+${BotActions.History}: ${BotHelp.History}
+
+${BotActions.Rollback}: ${BotHelp.Rollback}
+\`\`\`
+`;
+
 export class ArgoBot {
     // checks if command is valid and can be processed by ArgoBot
     // a valid command looks like so "argo [action]"
@@ -47,7 +68,7 @@ export class ArgoBot {
         return true;
     }
 
-    // responde with comment on current issue in context
+    // respond with comment on current issue in context
     // ArgoBot is triggered for PR comments, so this will create a new comment on the PR
     private static async respondWithComment(context, comment) {
         const response = context.issue({ body: comment });
@@ -56,10 +77,10 @@ export class ArgoBot {
 
     // sets the status check on a PR, example args:
     // state="success", description="message", context="argo/diff_success"
-    private static async setPrStatusCheck(context, stateString, descriptionString, contextString) {
+    private static async setPrStatusCheck(context: Context, stateString, descriptionString, contextString) {
         const prNumber = context.payload.issue.number;
         const branchContext = await ArgoBot.getCurrentBranchContext(context, prNumber);
-        await context.github.repos.createStatus({ owner: branchContext.head.repo.owner.login, repo: branchContext.head.repo.name, sha: branchContext.head.sha, state: stateString, description: descriptionString, context: contextString });
+        await context.github.repos.createCommitStatus({ owner: branchContext.head.repo.owner.login, repo: branchContext.head.repo.name, sha: branchContext.head.sha, state: stateString, description: descriptionString, context: contextString });
     }
 
     private static async setDiffStatusCheck(context, state) {
@@ -99,18 +120,22 @@ export class ArgoBot {
     // ---------------------
     // data members here
     private botCommand;
-    private appContext;
+    private appContext: Context;
     private argoConfig;
     private argoAPI;
 
     // ----------------------
     // non-static functions here
 
-    constructor(appContext) {
+    constructor(appContext: Context) {
         this.botCommand = BotCommand;
         this.appContext = appContext;
         this.argoConfig = new ArgoBotConfig();
         this.argoAPI = new ArgoAPI(this.appContext, this.argoConfig.getAPIToken(), this.argoConfig.getServerIP());
+    }
+
+    public async handleOpenedPr() {
+        return await this.handleHelpAction();
     }
 
     // handles command sent by user on PR
@@ -225,24 +250,7 @@ ${BotActions.Diff}: ${BotHelp.Diff}
     }
 
     private async handleHelpAction() {
-        const help = `
-Hi, I'm a bot that helps with Kubernetes deployments. Invoke me via \`${BotCommand}\` on PRs.
-Supported commands are:
-\`\`\`
-${BotActions.Diff}: ${BotHelp.Diff}
-
-${BotActions.Unlock}: ${BotHelp.Unlock}
-
-${BotActions.Sync}: ${BotHelp.Sync}
-
-${BotActions.Info}: ${BotHelp.Info}
-
-${BotActions.History}: ${BotHelp.History}
-
-${BotActions.Rollback}: ${BotHelp.Rollback}
-\`\`\`
-`;
-        await ArgoBot.respondWithComment(this.appContext, help);
+        await ArgoBot.respondWithComment(this.appContext, BotHelpMessage);
     }
 
     // attempts to obtain lock from singleton, returns true if lock was obtained
@@ -389,7 +397,7 @@ ${syncRes.stdout}
         // if JSON response is empty that means we received an error querying the API
         if (Object.entries(jsonArgoCDApps).length === 0) {
             await ArgoBot.setDiffStatusCheck(this.appContext, "failure");
-            return await this.respondWithError("Empty JSON reponse, make sure the argocd API is reachable and the JWT token is valid");
+            return await this.respondWithError("Empty JSON response, make sure the argocd API is reachable and the JWT token is valid");
         }
 
         // Otherwise if "items" is empty that means our filter did not find any deployments, for example if user specifies an empty directory using 'argo diff --dir somedir'

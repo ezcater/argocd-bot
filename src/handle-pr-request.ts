@@ -35,7 +35,7 @@ async function handlePrComment(context: Context, config) {
 
     context.log("handlePrComment, pr#" + prNumber);
     if (!ArgoBot.isBotCommand(prComment)) {
-        context.log("Recieved a non-bot command=" + prComment + "; ignoring!");
+        context.log("Received a non-bot command=" + prComment + "; ignoring!");
         return;
     }
 
@@ -44,11 +44,7 @@ async function handlePrComment(context: Context, config) {
     await bot.handleCommand(prComment);
 }
 
-/* tslint:disable */
-
-
-async function handlePrOpened(context: Context, config: any) {
-    console.log(config);
+async function handlePrOpened(context: Context) {
+    const bot = new ArgoBot(context);
+    await bot.handleOpenedPr();
 }
-
-/* tslint:enable */
