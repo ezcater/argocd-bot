@@ -67,9 +67,9 @@ describe("argo-cd-bot", () => {
             .reply(200, { "data": { "number": 1, "head": { "ref": branch } } })
 
         // regex match post body should match diff produced by API
-        let prCommentResponse = nock("https://api.github.com")
-            .post("/repos/robotland/test/issues/1/comments", (response: { body: string; }) => {
-                expect(response.body).toMatch(prOpenedComment)
+        let prCommentRequest = nock("https://api.github.com")
+            .post("/repos/robotland/test/issues/1/comments", (request: { body: string; }) => {
+                expect(request.body).toMatch(prOpenedComment)
                 return true;
             })
             .reply(200)
@@ -78,7 +78,7 @@ describe("argo-cd-bot", () => {
         await probot.receive({ name: "pull_request", payload: prOpenedPayload })
 
         // tells nock to evaluate if mocks were called with expected values
-        prCommentResponse.done()
+        prCommentRequest.done()
     })
 
     test("help comment posted on PR", async () => {
