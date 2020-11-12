@@ -1,7 +1,7 @@
 ARG ARGOCD_VERSION=latest
 FROM argoproj/argocd:$ARGOCD_VERSION as argocd
 
-FROM node:11.10.1-slim
+FROM node:12.19.0-slim
 
 RUN apt-get update && \
     apt-get --no-install-recommends install -y git apt-utils sudo python make vim procps && \
