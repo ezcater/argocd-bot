@@ -5,6 +5,8 @@ import { ArgoAPI } from "./argo-api";
 import { ArgoBotConfig } from "./argo-bot-config";
 import { to } from "./to";
 
+import { prOpenedComment } from "./templates/pr-opened";
+
 // TOOD: replace all these strings with a templating system like handlebars
 
 // bot command that triggers this bot to wake up
@@ -36,24 +38,6 @@ const BotHelp = Object.freeze({
     Sync: "usage: `sync [app name]`, syncs deployment in GKE cluster with manifests or helm charts using branch in current PR",
     Unlock: "removes lock held by current PR, allows other PR's to run bot",
 });
-
-export let BotHelpMessage = `
-Hi, I'm a bot that helps with Kubernetes deployments. Invoke me via \`${BotCommand}\` on PRs.
-Supported commands are:
-\`\`\`
-${BotActions.Diff}: ${BotHelp.Diff}
-
-${BotActions.Unlock}: ${BotHelp.Unlock}
-
-${BotActions.Sync}: ${BotHelp.Sync}
-
-${BotActions.Info}: ${BotHelp.Info}
-
-${BotActions.History}: ${BotHelp.History}
-
-${BotActions.Rollback}: ${BotHelp.Rollback}
-\`\`\`
-`;
 
 export class ArgoBot {
     // checks if command is valid and can be processed by ArgoBot
@@ -135,7 +119,7 @@ export class ArgoBot {
     }
 
     public async handleOpenedPr() {
-        return await this.handleHelpAction();
+        return await ArgoBot.respondWithComment(this.appContext, prOpenedComment);
     }
 
     // handles command sent by user on PR
@@ -250,7 +234,24 @@ ${BotActions.Diff}: ${BotHelp.Diff}
     }
 
     private async handleHelpAction() {
-        await ArgoBot.respondWithComment(this.appContext, BotHelpMessage);
+        const help = `
+Hi, I'm a bot that helps with Kubernetes deployments. Invoke me via \`${BotCommand}\` on PRs.
+Supported commands are:
+\`\`\`
+${BotActions.Diff}: ${BotHelp.Diff}
+
+${BotActions.Unlock}: ${BotHelp.Unlock}
+
+${BotActions.Sync}: ${BotHelp.Sync}
+
+${BotActions.Info}: ${BotHelp.Info}
+
+${BotActions.History}: ${BotHelp.History}
+
+${BotActions.Rollback}: ${BotHelp.Rollback}
+\`\`\`
+`;
+        await ArgoBot.respondWithComment(this.appContext, help);
     }
 
     // attempts to obtain lock from singleton, returns true if lock was obtained

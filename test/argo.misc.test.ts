@@ -3,7 +3,8 @@ import nock from 'nock';
 import { Probot, ProbotOctokit } from "probot";
 
 const ArgocdBot = require("..")
-import { BotHelpMessage } from "../src/argo-bot";
+
+import { prOpenedComment } from "../src/templates/pr-opened"
 
 // test fixtures
 const payloadPr1 = require("./fixtures/issue_comment.created.pr1.json")
@@ -68,7 +69,7 @@ describe("argo-cd-bot", () => {
         // regex match post body should match diff produced by API
         let prCommentResponse = nock("https://api.github.com")
             .post("/repos/robotland/test/issues/1/comments", (response: { body: string; }) => {
-                expect(response.body).toMatch(BotHelpMessage)
+                expect(response.body).toMatch(prOpenedComment)
                 return true;
             })
             .reply(200)
