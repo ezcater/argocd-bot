@@ -1,10 +1,10 @@
-ARG ARGOCD_VERSION=latest
+ARG ARGOCD_VERSION=v1.7.5
 FROM argoproj/argocd:$ARGOCD_VERSION as argocd
 
 FROM node:12.19.0-slim
 
 RUN apt-get update && \
-    apt-get --no-install-recommends install -y git apt-utils sudo python make vim procps && \
+    apt-get --no-install-recommends install -y git apt-utils sudo python make vim procps ca-certificates && \
     apt-get clean && \
     rm -rf \
         /var/lib/apt/lists/* \
@@ -13,6 +13,8 @@ RUN apt-get update && \
         /usr/share/man \
         /usr/share/doc \
         /usr/share/doc-base
+
+RUN update-ca-certificates
 
 WORKDIR /home/argocd/argocd-bot
 
