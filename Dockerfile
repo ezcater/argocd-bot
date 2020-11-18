@@ -1,4 +1,4 @@
-ARG ARGOCD_VERSION=latest
+ARG ARGOCD_VERSION=v1.7.5
 FROM argoproj/argocd:$ARGOCD_VERSION as argocd
 
 FROM node:12.19.0-slim
